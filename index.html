@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulačka</title>
+</head>
+<body>
+<h1>Kalkulačka</h1>
+<div id="expression"></div>
+<div id="display"></div>
+<script id="calc-core">
+(function () {
+  'use strict';
+
+  /* Čisté jádro kalkulačky bez přístupu k DOM. */
+  function initialState() {
+    return { acc: null, input: '0', op: null, justEvaluated: false };
+  }
+
+  function copy(s) {
+    return { acc: s.acc, input: s.input, op: s.op, justEvaluated: s.justEvaluated };
+  }
+
+  function press(state, key) {
+    var s = copy(state);
+    if (typeof key === 'string' && key.length === 1 && key >= '0' && key <= '9') {
+      if (s.justEvaluated) {
+        s.input = key;
+        s.acc = null;
+        s.op = null;
+        s.justEvaluated = false;
+      } else if (s.input === '0') {
+        s.input = key;
+      } else {
+        s.input = s.input + key;
+      }
+      return s;
+    }
+    if (key === '+') {
+      if (s.op === '+') {
+        s.acc = Number(s.acc) + Number(s.input);
+      } else {
+        s.acc = Number(s.input);
+      }
+      s.op = '+';
+      s.input = '0';
+      s.justEvaluated = false;
+      return s;
+    }
+    if (key === '=') {
+      if (s.op === '+') {
+        s.input = String(Number(s.acc) + Number(s.input));
+        s.acc = null;
+        s.op = null;
+        s.justEvaluated = true;
+      }
+      return s;
+    }
+    return s;
+  }
+
+  function view(state) {
+    var expr = state.op ? String(state.acc) + ' ' + state.op : '';
+    return { display: String(state.input), expression: expr };
+  }
+
+  globalThis.CalcCore = { initialState: initialState, press: press, view: view };
+})();
+</script>
+</body>
+</html>
