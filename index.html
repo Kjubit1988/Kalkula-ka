@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulačka</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: #f4f4f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .calculator {
+      background: #22252d;
+      border-radius: 1rem;
+      width: 100%;
+      max-width: 340px;
+      padding: 1.25rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    }
+    .display {
+      background: #292d36;
+      color: #ffffff;
+      font-size: 2.25rem;
+      text-align: right;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      min-height: 4rem;
+      word-break: break-all;
+    }
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+    button {
+      background: #2a2d37;
+      color: #ffffff;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #353945;
+    }
+    button.span-two {
+      grid-column: span 2;
+    }
+  </style>
+</head>
+<body>
+  <main class="calculator">
+    <div id="display" class="display">0</div>
+    <div class="keys">
+      <button type="button" data-key="AC">AC</button>
+      <button type="button" data-key="±">±</button>
+      <button type="button" data-key="⌫">⌫</button>
+      <button type="button" data-key="÷">÷</button>
+      <button type="button" data-key="7">7</button>
+      <button type="button" data-key="8">8</button>
+      <button type="button" data-key="9">9</button>
+      <button type="button" data-key="×">×</button>
+      <button type="button" data-key="4">4</button>
+      <button type="button" data-key="5">5</button>
+      <button type="button" data-key="6">6</button>
+      <button type="button" data-key="−">−</button>
+      <button type="button" data-key="1">1</button>
+      <button type="button" data-key="2">2</button>
+      <button type="button" data-key="3">3</button>
+      <button type="button" data-key="+">+</button>
+      <button type="button" data-key="0" class="span-two">0</button>
+      <button type="button" data-key=",">,</button>
+      <button type="button" data-key="=">=</button>
+    </div>
+  </main>
+  <script>
+    (function () {
+      var currentInput = '0';
+      var storedValue = null;
+      var pendingOperator = null;
+      var justEvaluated = false;
+      var initialized = false;
+
+      function updateDisplay() {
+        var displayEl = document.getElementById('display');
+        if (displayEl) {
+          displayEl.textContent = currentInput;
+        }
+      }
+
+      function compute(a, b, op) {
+        var numA = Number(a);
+        var numB = Number(b);
+        if (op === '+') {
+          return String(numA + numB);
+        }
+        return String(numB);
+      }
+
+      function handleKey(key) {
+        if (key >= '0' && key <= '9') {
+          if (justEvaluated) {
+            currentInput = key;
+            justEvaluated = false;
+          } else if (currentInput === '0') {
+            currentInput = key;
+          } else {
+            currentInput = currentInput + key;
+          }
+          updateDisplay();
+          return;
+        }
+
+        if (key === 'AC') {
+          currentInput = '0';
+          storedValue = null;
+          pendingOperator = null;
+          justEvaluated = false;
+          updateDisplay();
+          return;
+        }
+
+        if (key === '+') {
+          if (pendingOperator && storedValue !== null && !justEvaluated) {
+            currentInput = compute(storedValue, currentInput, pendingOperator);
+          }
+          storedValue = currentInput;
+          pendingOperator = '+';
+          currentInput = '0';
+          justEvaluated = false;
+          return;
+        }
+
+        if (key === '=') {
+          if (pendingOperator && storedValue !== null) {
+            currentInput = compute(storedValue, currentInput, pendingOperator);
+            storedValue = null;
+            pendingOperator = null;
+            justEvaluated = true;
+            updateDisplay();
+          }
+          return;
+        }
+      }
+
+      function init() {
+        if (initialized) {
+          return;
+        }
+        initialized = true;
+        var container = document.querySelector('.keys') || document;
+        container.addEventListener('click', function (event) {
+          if (!event.target || typeof event.target.closest !== 'function') {
+            return;
+          }
+          var btn = event.target.closest('button');
+          if (!btn) {
+            return;
+          }
+          var key = btn.getAttribute('data-key') || btn.textContent.trim();
+          handleKey(key);
+        });
+        updateDisplay();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>
